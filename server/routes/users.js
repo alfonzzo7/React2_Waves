@@ -1,10 +1,19 @@
 const express = require('express');
+const formidable = require('express-formidable');
+const cloudinary = require('cloudinary');
+
+cloudinary.config({
+    cloud_name: process.env.CLOUD_NAME,
+    api_key: process.env.CLOUD_API_KEY,
+    api_secret: process.env.CLOUD_API_SECRET
+});
 
 // Models
 const { User } = require('../models/user');
 
 // Middlewares
 const { auth } = require('../middleware/auth');
+const { admin } = require('../middleware/admin');
 
 const app = express();
 
@@ -57,6 +66,29 @@ app.get('/api/users/logout', auth, (req, res) => {
         if (err) return res.json({success: false, err});
         
         return res.status(200).send({
+            success: true
+        });
+    });
+});
+
+app.post('/api/users/uploadImage', auth, admin, formidable(), (req, res) => {
+    cloudinary.uploader.upload(req.files.file.path, (result) => {
+        res.status(200).send({
+            public_id: result.public_id,
+            url: result.url
+        });
+    }, {
+        public_id: `${Date.now()}-waves`,
+        resource_type: 'auto'
+    });
+});
+
+app.get('/api/users/removeImage', auth, admin, (req, res) => {
+    let public_id = req.query.public_id;
+    cloudinary.uploader.destroy(public_id, (result, error) => {
+        if (error) return res.status(500).json({success: false, error});
+
+        res.status(200).send({
             success: true
         });
     });
