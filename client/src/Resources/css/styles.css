@@ -712,7 +712,7 @@ footer .business_nfo .nfo {
     cursor: pointer;
     height: 200px;
     width: 50%;
-    background-size: cover !important;
+    background-size: contain !important;
     background-position: bottom center !important;
     border: 1px solid #e8e8e8;
     box-sizing: border-box;

@@ -50,7 +50,7 @@ app.post('/api/category/wood', auth, admin, (req, res) => {
         
         res.status(200).json({
             success: true,
-            brand: doc
+            wood: doc
         });
     });
 });

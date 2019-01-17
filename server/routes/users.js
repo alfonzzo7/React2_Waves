@@ -1,4 +1,5 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const formidable = require('express-formidable');
 const cloudinary = require('cloudinary');
 
@@ -91,6 +92,45 @@ app.get('/api/users/removeImage', auth, admin, (req, res) => {
         res.status(200).send({
             success: true
         });
+    });
+});
+
+app.post('/api/users/addToCart', auth, (req, res) => {
+    User.findById(req.user._id, (err, user) => {
+        let duplicate = false;
+
+        user.cart.forEach(product => {
+            if (product.id == req.query.productId) {
+                console.log('Duplicate');
+                duplicate = true;
+            }
+        });
+
+        if (duplicate) {
+            User.findOneAndUpdate(
+                {_id: req.user._id, 'cart.id': mongoose.Types.ObjectId(req.query.productId)}, 
+                { $inc: { 'cart.$.quantity': 1 }},
+                { new: true },
+                (err, user) => {
+                    if (err) return res.json({sucess: false, err});
+
+                    res.status(200).json(user.cart);
+            });
+        } else {
+            User.findOneAndUpdate(
+                {_id: req.user._id}, 
+                { $push: { cart: {
+                    id: mongoose.Types.ObjectId(req.query.productId),
+                    quantity: 1,
+                    date: Date.now()
+                }}},
+                { new: true },
+                (err, user) => {
+                    if (err) return res.json({sucess: false, err});
+
+                    res.status(200).json(user.cart);
+            });
+        }
     });
 });
 

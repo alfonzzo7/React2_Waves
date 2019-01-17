@@ -4,9 +4,10 @@ import { connect } from 'react-redux';
 import UserLayout from './../../../hoc/UserLayout';
 import FormField from './../../utils/Form/FormField';
 import { update, generateData, isFormValid, populateOptionsFields, resetFields } from '../../utils/Form/FormActions';
-import { getBrands, getWoods, addProducts, clearProducts } from './../../../redux/actions/products_actions';
+import { getBrands, getWoods, addProducts, clearPayload } from './../../../redux/actions/products_actions';
 import { fretsSelect } from '../../utils/Form/fixed_categories';
 import FileUpload from './../../utils/Form/FileUpload';
+import { CLEAR_PRODUCT } from './../../../redux/actions/types';
 
 class AddProducts extends Component {
     state = {
@@ -229,7 +230,7 @@ class AddProducts extends Component {
         setTimeout(() => {
             this.setState({
                 formSuccess: false
-            }, () => this.props.dispatch(clearProducts()));
+            }, () => this.props.dispatch(clearPayload(CLEAR_PRODUCT)));
         }, 3000);
     }
 
