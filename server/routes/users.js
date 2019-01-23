@@ -232,4 +232,20 @@ app.post('/api/users/successBuy', auth, (req, res) => {
     )
 });
 
+app.post('/api/users/updateProfile', auth, (req, res) => {
+    User.findOneAndUpdate(
+        { _id: req.user._id },
+        { '$set': req.body },
+        { new: true },
+        (err, user) => {
+            if (err) return res.json({success: false, err});
+
+            res.status(200).json({
+                success: true
+            });
+        }
+
+    )
+});
+
 module.exports = app;

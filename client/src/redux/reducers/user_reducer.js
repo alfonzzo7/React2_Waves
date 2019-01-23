@@ -1,4 +1,15 @@
-import { LOGIN_USER, REGISTER_USER, AUTH_USER, LOGOUT_USER, ADD_TO_USER_CART, GET_USER_CART_ITEMS, REMOVE_FROM_USER_CART, SUCCESS_USER_BUY } from './../actions/types'; 
+import {
+  LOGIN_USER,
+  REGISTER_USER,
+  AUTH_USER,
+  LOGOUT_USER,
+  ADD_TO_USER_CART,
+  GET_USER_CART_ITEMS,
+  REMOVE_FROM_USER_CART,
+  SUCCESS_USER_BUY,
+  UPDATE_USER_DATA,
+  CLEAR_UPDATE_USER_DATA
+} from "./../actions/types"; 
 
 export default function(state={}, action) {
     switch (action.type) {
@@ -45,6 +56,18 @@ export default function(state={}, action) {
                     ...state.userData,
                     cart: action.payload.cart
                 }
+            }
+
+        case UPDATE_USER_DATA:
+            return {
+                ...state,
+                updateUser: action.payload
+            }
+
+        case CLEAR_UPDATE_USER_DATA:
+            return {
+                ...state,
+                updateUser: action.payload
             }
     
         default:

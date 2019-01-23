@@ -93,3 +93,16 @@ export const resetFields = (formData) => {
 
     return newFormData;
 }
+
+export const populateFields = (formData, userData) => {
+    let newFormData = {...formData};
+
+    for (let key in newFormData) {
+        newFormData[key].value = userData[key];
+        newFormData[key].valid = true;
+        newFormData[key].touched = true;
+        newFormData[key].validationMessage = '';
+    }
+
+    return newFormData;
+}

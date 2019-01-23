@@ -1,7 +1,17 @@
 import axios from 'axios';
 
 import { USER_SERVER, PRODUCT_SERVER } from './../../components/utils/misc';
-import { LOGIN_USER, REGISTER_USER, AUTH_USER, LOGOUT_USER, ADD_TO_USER_CART, GET_USER_CART_ITEMS, REMOVE_FROM_USER_CART, SUCCESS_USER_BUY } from './types';
+import {
+  LOGIN_USER,
+  REGISTER_USER,
+  AUTH_USER,
+  LOGOUT_USER,
+  ADD_TO_USER_CART,
+  GET_USER_CART_ITEMS,
+  REMOVE_FROM_USER_CART,
+  SUCCESS_USER_BUY,
+  UPDATE_USER_DATA
+} from "./types";
 
 export function loginUser(dataToSubmit) {
     const request = axios.post(`${USER_SERVER}/login`,dataToSubmit)
@@ -99,6 +109,16 @@ export function successUserBuy(data) {
 
     return {
         type: SUCCESS_USER_BUY,
+        payload: request
+    }
+}
+
+export function updateUserData(data) {
+    const request = axios.post(`${USER_SERVER}/updateProfile`, data)
+        .then(response => response.data);
+
+    return {
+        type: UPDATE_USER_DATA,
         payload: request
     }
 }

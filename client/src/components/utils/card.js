@@ -37,7 +37,7 @@ class Card extends Component {
                             {props.name}
                         </div>
                         <div className="price">
-                            ${props.price}
+                            {props.price} €
                         </div>
                     </div>
                     {
