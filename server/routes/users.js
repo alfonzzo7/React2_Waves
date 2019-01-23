@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const formidable = require('express-formidable');
 const cloudinary = require('cloudinary');
+const async = require('async');
 
 cloudinary.config({
     cloud_name: process.env.CLOUD_NAME,
@@ -11,6 +12,8 @@ cloudinary.config({
 
 // Models
 const { User } = require('../models/user');
+const { Product } = require('../models/product');
+const { Payment } = require('../models/payment');
 
 // Middlewares
 const { auth } = require('../middleware/auth');
@@ -96,7 +99,7 @@ app.get('/api/users/removeImage', auth, admin, (req, res) => {
 });
 
 app.post('/api/users/addToCart', auth, (req, res) => {
-    User.findById(req.user._id, (err, user) => {
+    User.findOne({_id: req.user._id}, (err, user) => {
         let duplicate = false;
 
         user.cart.forEach(product => {
@@ -132,6 +135,101 @@ app.post('/api/users/addToCart', auth, (req, res) => {
             });
         }
     });
+});
+
+app.get('/api/users/removeFromCart', auth, (req, res) => {
+    User.findOneAndUpdate(
+        {_id: req.user._id},
+        { '$pull':
+            { 'cart': {'id': mongoose.Types.ObjectId(req.query.productId)}}
+        },
+        {new: true},
+        (err, user) => {
+            let cart = user.cart;
+            let array = cart.map(item => {
+                return mongoose.Types.ObjectId(item.id);
+            });
+
+            Product.find({'_id': { $in: array}}).
+                populate('brand').
+                populate('wood').
+                exec((err, cartDetail) => {
+                    return res.status(200).json({
+                        cartDetail,
+                        cart
+                    })
+                });
+    });
+});
+
+app.post('/api/users/successBuy', auth, (req, res) => {
+    let history = [];
+    let transData = [];
+
+    //user history
+    req.body.cartDetail.forEach(item => {
+        history.push({
+            dateOfPurchase: Date.now(),
+            name: item.name,
+            brand: item.brand.name,
+            id: item._id,
+            price: item.price,
+            quantity: item.quantity,
+            paymentId: req.body.paymentData.paymentID
+        });
+    });
+
+    //payments dash
+    transData.user = {
+        id: req.user._id,
+        name: req.user.name,
+        lastname: req.user.lastname,
+        email: req.user.email,
+    }
+    transData.data = req.body.paymentData;
+    transData.products = history;
+
+    User.findOneAndUpdate(
+        { _id: req.user._id },
+        { $push: { history:history }, $set: { cart:[] } },
+        { new: true },
+        (err, user) => {
+            if (err) return res.json({success: false, err});
+
+            const payment = new Payment(transData);
+            payment.save((err, doc) => {
+                if (err) return res.json({success: false, err});
+
+                let products = [];
+                doc.products.forEach(item => {
+                    products.push({
+                        id: item.id,
+                        quantity: item.quantity
+                    })
+                })
+
+                async.eachSeries(
+                    products,
+                    (item, callback) => {
+                        Product.update(
+                            { _id: item.id },
+                            { $inc: { 'sold': item.quantity }},
+                            { new: false },
+                            callback
+                        )
+                    },
+                    (err) => {
+                        if (err) return res.json({success: false, err});
+
+                        res.status(200).json({
+                            success: true,
+                            cart: user.cart,
+                            cartDetail: []
+                        });
+                    });
+            })
+        }
+    )
 });
 
 module.exports = app;
