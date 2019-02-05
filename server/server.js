@@ -7,7 +7,7 @@ require('dotenv').config();
 const app = express();
 
 mongoose.Promise = global.Promise;
-mongoose.connect(process.env.DATABASE, {useNewUrlParser: true});
+mongoose.connect(process.env.MONGODB_URI, {useNewUrlParser: true});
 
 app.use(bodyParser.urlencoded({entended: true}));
 app.use(bodyParser.json());
