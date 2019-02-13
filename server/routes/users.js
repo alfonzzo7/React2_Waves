@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const formidable = require('express-formidable');
 const cloudinary = require('cloudinary');
 const async = require('async');
+const SHA1 = require('crypto-js/sha1');
 
 cloudinary.config({
     cloud_name: process.env.CLOUD_NAME,
@@ -18,6 +19,8 @@ const { Payment } = require('../models/payment');
 // Middlewares
 const { auth } = require('../middleware/auth');
 const { admin } = require('../middleware/admin');
+
+const { sendEmail } = require('../utils/mail/index');
 
 const app = express();
 
@@ -39,8 +42,10 @@ app.post('/api/users/register', (req, res) => {
 
     user.save((err, doc) => {
         if (err) return res.json({success: false, err});
+
+        sendEmail(doc.email, doc.name, null, 'welcome');
         
-        res.status(200).json({
+        return res.status(200).json({
             success: true,
             // userdata: doc
         });
@@ -166,9 +171,13 @@ app.post('/api/users/successBuy', auth, (req, res) => {
     let history = [];
     let transData = [];
 
+    const date = new Date();
+    const po = `PO-${date.getSeconds()}${date.getMilliseconds()}-${SHA1(req.user._id).toString().substring(0,8)}`;
+
     //user history
     req.body.cartDetail.forEach(item => {
         history.push({
+            porder: po,
             dateOfPurchase: Date.now(),
             name: item.name,
             brand: item.brand.name,
@@ -186,7 +195,10 @@ app.post('/api/users/successBuy', auth, (req, res) => {
         lastname: req.user.lastname,
         email: req.user.email,
     }
-    transData.data = req.body.paymentData;
+    transData.data = {
+        ...req.body.paymentData,
+        porder: po
+    };
     transData.products = history;
 
     User.findOneAndUpdate(
@@ -220,6 +232,9 @@ app.post('/api/users/successBuy', auth, (req, res) => {
                     },
                     (err) => {
                         if (err) return res.json({success: false, err});
+
+                        // Send the email
+                        sendEmail(user.email, user.mail, null, 'purchase', transData);
 
                         res.status(200).json({
                             success: true,
