@@ -5,6 +5,7 @@ import { withRouter } from 'react-router-dom';
 import FormField from './../utils/Form/FormField';
 import { update, generateData, isFormValid } from '../utils/Form/FormActions';
 import { loginUser } from '../../redux/actions/user_actions';
+import MyButton from './../utils/buttom';
 
 class Login extends Component {
     state = {
@@ -99,9 +100,14 @@ class Login extends Component {
                         </div>
                         : null
                     }
-                    <button onClick={(event) => this.submitForm(event)}>
-                        Sing in
-                    </button>
+                    <div>
+                        <button onClick={(event) => this.submitForm(event)}>
+                            Sing in
+                        </button>
+                        <button onClick={() => this.props.history.push('/forgot_password')} style={{marginLeft: '10px'}}>
+                            Forgot password
+                        </button>
+                    </div>
                 </form>
             </div>
         );
